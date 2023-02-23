@@ -1,0 +1,17 @@
+{
+  "name": "forest-tutorial",
+  "source": "src/index.html",
+  "scripts": {
+    "start": "parcel src/index.html",
+    "build": "parcel build"
+  },
+  "devDependencies": {
+    "@parcel/transformer-glsl": "^2.8.3",
+    "parcel": "^2.8.0"
+  },
+  "dependencies": {
+    "gsap": "^3.11.3",
+    "lil-gui": "^0.17.0",
+    "three": "^0.146.0"
+  }
+}
