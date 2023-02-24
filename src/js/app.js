@@ -12,6 +12,7 @@ export default class Sketch {
     this.scene = new THREE.Scene();
     this.scene1 = new THREE.Scene();
 
+    // Container
     this.container = options.dom;
 
     // Sizes
@@ -19,23 +20,10 @@ export default class Sketch {
     this.height = this.container.offsetHeight;
 
     // Renderer
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(this.width, this.height);
-    // background color
-    this.renderer.setClearColor(0x000000, 1);
-    this.renderer.physicallyCorrectLights = true;
-    this.renderer.outputEncoding = THREE.sRGBEncoding;
-
     this.container.appendChild(this.renderer.domElement);
-
-    // Camera
-    this.camera = new THREE.PerspectiveCamera(
-      70,
-      window.innerWidth / window.innerHeight,
-      0.001,
-      1000
-    );
 
     this.baseTexture = new THREE.WebGLRenderTarget(this.width, this.height, {
       minFilter: THREE.LinearFilter,
@@ -45,6 +33,8 @@ export default class Sketch {
 
     var frustumSize = this.height;
     var aspect = this.width / this.height;
+
+    // Camera
     this.camera = new THREE.OrthographicCamera(
       (frustumSize * aspect) / -2,
       (frustumSize * aspect) / 2,
@@ -60,8 +50,6 @@ export default class Sketch {
     this.mouse = new THREE.Vector2(0, 0);
     this.prevMouse = new THREE.Vector2(0, 0);
     this.currentWave = 0;
-
-    this.isPlaying = true;
 
     this.addObjects();
     this.mouseEvents();
@@ -85,23 +73,6 @@ export default class Sketch {
 
     // Update renderer
     this.renderer.setSize(this.width, this.height);
-
-    // image cover
-    this.imageAspect = 853 / 1280;
-    let a1;
-    let a2;
-    if (this.height / this.width > this.imageAspect) {
-      a1 = (this.width / this.height) * this.imageAspect;
-      a2 = 1;
-    } else {
-      a1 = 1;
-      a2 = this.height / this.width / this.imageAspect;
-    }
-
-    this.material.uniforms.resolution.value.x = this.width;
-    this.material.uniforms.resolution.value.y = this.height;
-    this.material.uniforms.resolution.value.z = a1;
-    this.material.uniforms.resolution.value.w = a2;
   }
 
   // get the mouse position
@@ -125,19 +96,11 @@ export default class Sketch {
         uTexture: { value: new THREE.TextureLoader().load(ocean) },
         resolution: { value: new THREE.Vector4() },
       },
-      // wireframe: true,
-      // transparent: true,
       vertexShader: vertex,
       fragmentShader: fragment,
     });
 
     this.max = 100;
-
-    // this.material1 = new THREE.MeshBasicMaterial({
-    //   // color: 0xff0000,
-    //   map: new THREE.TextureLoader().load(brush),
-    //   transparent: true,
-    // });
 
     this.geometry = new THREE.PlaneGeometry(64, 64, 1, 1);
     this.geometryFullScreen = new THREE.PlaneGeometry(
@@ -169,17 +132,6 @@ export default class Sketch {
     this.scene1.add(this.quad);
   }
 
-  stop() {
-    this.isPlaying = false;
-  }
-
-  play() {
-    if (!this.isPlaying) {
-      this.isPlaying = true;
-      this.render();
-    }
-  }
-
   setNewWave(x, y, index) {
     let mesh = this.meshes[index];
     mesh.visible = true;
@@ -206,7 +158,6 @@ export default class Sketch {
 
   render() {
     this.trackMousePosition();
-    if (!this.isPlaying) return;
     this.time += 0.05;
     this.material.uniforms.time.value = this.time;
     requestAnimationFrame(this.render.bind(this));
