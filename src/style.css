@@ -24,14 +24,6 @@ canvas {
   width: 50;
   z-index: 5;
 }
-.menu__container {
-  display: flex;
-  position: fixed;
-  z-index: 10;
-  top: 3.5vh;
-  right: 4vw;
-  cursor: pointer;
-}
 .menu__text {
   margin-right: 2rem;
   color: #fff;
