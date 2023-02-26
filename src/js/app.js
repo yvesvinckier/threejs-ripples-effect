@@ -116,7 +116,7 @@ export default class Sketch {
     this.shaderScale = this.material.uniforms.scale.value;
 
     // wave geometry
-    this.waveGeometry = new THREE.PlaneGeometry(50, 50, 1, 1);
+    this.waveGeometry = new THREE.PlaneGeometry(60, 60, 1, 1);
 
     // number of waves
     this.max = 100;

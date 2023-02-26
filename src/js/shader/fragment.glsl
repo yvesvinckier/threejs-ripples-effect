@@ -17,6 +17,6 @@ void main() {
 
     vec4 color = texture2D(uTexture, uv);
     
-    // gl_FragColor = color;
-   gl_FragColor = displacement;
+    gl_FragColor = color;
+    // gl_FragColor = displacement;
 }
