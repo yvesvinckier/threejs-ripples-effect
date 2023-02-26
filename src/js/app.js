@@ -19,6 +19,9 @@ export default class Sketch {
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
 
+    // Image aspect
+    this.imageAspect = 2400 / 1800;
+
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -31,10 +34,10 @@ export default class Sketch {
       format: THREE.RGBAFormat,
     });
 
+    // Camera
     var frustumSize = this.height;
     var aspect = this.width / this.height;
 
-    // Camera
     this.camera = new THREE.OrthographicCamera(
       (frustumSize * aspect) / -2,
       (frustumSize * aspect) / 2,
@@ -44,8 +47,9 @@ export default class Sketch {
       1000
     );
 
-    this.camera.position.set(0, 0, 2);
+    this.camera.position.z = 2;
 
+    // variables
     this.time = 0;
     this.mouse = new THREE.Vector2(0, 0);
     this.prevMouse = new THREE.Vector2(0, 0);
@@ -73,6 +77,16 @@ export default class Sketch {
 
     // Update renderer
     this.renderer.setSize(this.width, this.height);
+
+    // viewport Aspect
+    this.viewportAspect = this.width / this.height;
+
+    // Fit image inside viewport
+    if (this.imageAspect > this.viewportAspect) {
+      this.shaderScale.set(this.imageAspect / this.viewportAspect, 1);
+    } else {
+      this.shaderScale.set(1, this.viewportAspect / this.imageAspect);
+    }
   }
 
   // get the mouse position
@@ -84,33 +98,33 @@ export default class Sketch {
   }
 
   addObjects() {
-    let that = this;
+    // geometry
+    this.imageGeometry = new THREE.PlaneGeometry(this.width, this.height, 1, 1);
+
+    // material
     this.material = new THREE.ShaderMaterial({
-      extensions: {
-        derivatives: "#extension GL_OES_standard_derivatives : enable",
-      },
-      side: THREE.DoubleSide,
       uniforms: {
-        time: { value: 0 },
         uDisplacement: { value: null },
         uTexture: { value: new THREE.TextureLoader().load(ocean) },
-        resolution: { value: new THREE.Vector4() },
+        scale: { value: new THREE.Vector2(1, 1) },
       },
       vertexShader: vertex,
       fragmentShader: fragment,
+      // wireframe: true,
     });
 
+    this.shaderScale = this.material.uniforms.scale.value;
+
+    // wave geometry
+    this.waveGeometry = new THREE.PlaneGeometry(50, 50, 1, 1);
+
+    // number of waves
     this.max = 100;
 
-    this.geometry = new THREE.PlaneGeometry(64, 64, 1, 1);
-    this.geometryFullScreen = new THREE.PlaneGeometry(
-      this.width,
-      this.height,
-      1,
-      1
-    );
+    // array of meshes
     this.meshes = [];
 
+    // create the waves
     for (let i = 0; i < this.max; i++) {
       let m = new THREE.MeshBasicMaterial({
         map: new THREE.TextureLoader().load(brush),
@@ -120,15 +134,18 @@ export default class Sketch {
         depthWrite: false,
       });
 
-      let mesh = new THREE.Mesh(this.geometry, m);
+      let mesh = new THREE.Mesh(this.waveGeometry, m);
 
-      // mesh.visible = false;
+      // only show the mesh on some cases
+      mesh.visible = false;
+
+      // random rotation
       mesh.rotation.z = Math.random() * Math.PI * 2;
       this.scene.add(mesh);
       this.meshes.push(mesh);
     }
 
-    this.quad = new THREE.Mesh(this.geometryFullScreen, this.material);
+    this.quad = new THREE.Mesh(this.imageGeometry, this.material);
     this.scene1.add(this.quad);
   }
 
@@ -158,8 +175,6 @@ export default class Sketch {
 
   render() {
     this.trackMousePosition();
-    this.time += 0.05;
-    this.material.uniforms.time.value = this.time;
     requestAnimationFrame(this.render.bind(this));
 
     // merge the two scenes
@@ -176,6 +191,7 @@ export default class Sketch {
         // mesh.position.y = this.mouse.y;
         mesh.rotation.z += 0.02;
         mesh.material.opacity *= 0.96;
+
         mesh.scale.x = 0.982 * mesh.scale.x + 0.108;
         mesh.scale.y = mesh.scale.x;
         if (mesh.material.opacity < 0.002) {
