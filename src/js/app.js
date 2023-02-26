@@ -20,7 +20,7 @@ export default class Sketch {
     this.height = this.container.offsetHeight;
 
     // Image aspect
-    this.imageAspect = 2400 / 1800;
+    this.imageAspect = 4000 / 3000;
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
